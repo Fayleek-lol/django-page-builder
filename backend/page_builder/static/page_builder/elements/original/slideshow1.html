@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Slide Show</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="../bundles/build.css" rel="stylesheet">
+    <link href="../bundles/nivo-slider.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements. All other JS at the end of file. -->
+    <!--[if lt IE 9]>
+      <script src="js/html5shiv.js"></script>
+      <script src="js/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+
+<body class="bodyPaddingLess">
+    <div id="page" class="page">
+
+        <div class="demo_page_builder">
+        <!-- {% if 0 %} -->
+        <h3>Для корректного отображения нажмите Preview</h3>
+        <!-- {% endif %} -->
+        <!--
+        {% load page_builder thumbnail %}
+        {% updatecontext %}
+        {
+            "entity": {
+                "description": "<p>Это описание новости</p>",
+                "name": "Проведен капитальный ремонт жилого дома по адресу Садовая 12",
+                "lead": "",
+                "author": "Илья Иванов",
+                "images":
+                {
+                    "all": [
+                        {
+                            "caption": "This is an example of a caption",
+                            "file": ""
+                        },
+                        {
+                            "caption": "#htmlcaption",
+                            "file": ""
+                        },
+                        {
+                            "caption": "#htmlcaption",
+                            "file": ""
+                        }
+                    ]
+                }
+            },
+            "placeholder_img_url": "/static/page_builder/mockup/placeholder.png",
+            "extra_script": "<script src=\"../bundles/nivo_slider_start.js\" defer></script>"
+        }
+        {% endupdatecontext %}
+        -->
+        </div>
+
+    	<div class="container" id="slideshow1">
+    
+    		<div class="col-md-12">
+				
+				<h1 id="h1">{{ entity.name }}</h1>
+    
+                                <!-- {% load thumbnail %} -->
+				<div class="nivoSlider">
+                                {% load page_builder %}
+                                {% for i in entity.images.all %}
+                                    {% if i.file %}
+				    <img src="{% thumbnail i.file 300x300 crop upscale %}" alt="" title="{{ i.caption }}" class="edit"  />
+                                    {% else %}
+				    <img src="{{ placeholder_img_url }}" alt="" title="{{ i.caption }}" class="edit"  />
+                                    {% endif %}
+                                {% endfor %}
+				</div>
+				<div id="htmlcaption" class="nivo-html-caption">
+				    <strong>This</strong> is an example of a <em>HTML</em> caption with <a href="#">a link</a>.
+				</div>
+    	
+    		</div><!-- /.col -->
+
+    	</div><!-- /.container -->
+
+    </div><!-- /#page -->
+    <script src="../bundles/original_headers.bundle.js"></script>
+    <script src="../bundles/jquery.nivo.slider.pack.js"></script>
+</body>
+</html>

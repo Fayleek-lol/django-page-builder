@@ -1,0 +1,156 @@
+{% load i18n %}
+<style>
+iframe.fullscreen {
+    display: block;
+    visibility: visible;
+    z-index: 1;
+    overflow: hidden;
+    border: 0;
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+    width:100%;
+    height:100%;
+}
+
+iframe.hidden, input.hidden {
+    visibility: hidden;
+    display: block;
+    width: 1px;
+    height: 1px;
+    border: 0;
+}
+</style>
+
+
+<script type="text/javascript">
+(function ($) {
+    "use strict";
+
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000)
+            .toString(16)
+            .substring(1);
+    }
+
+    function guid() {
+        return s4() + s4() + s4() + s4() + s4() + s4() + s4() + s4();
+    }
+
+    window._init_page_builder_fn = window._init_page_builder_fn || function(name) {
+        $("." + name + "-pb-input").parent()
+            .append( '<h1><a id="' + name + '-hb-fullscreen" href="#" class="button" type="button"><i class="fa fa-edit" title="{% trans "Edit" %}"></i>&nbsp;{% trans "Edit" %}</a></h1>' )
+            .append( '<iframe id="' + name + '-html-builder" name="' + name + '" class="hidden" src="/static/page_builder/index.html?rand={% now "U" %}"></iframe>' );
+
+        $("#" + name + "-hb-fullscreen").click(function( e ) {
+            e.preventDefault();
+            $("#" + name + "-html-builder").removeClass("hidden");
+            $("#" + name + "-html-builder").addClass("fullscreen");
+        });
+    }
+
+    window._page_builders = window._page_builders || {};
+
+    // widget name
+    var name = "{{ final_attrs.name }}";
+
+    function getCloseIFrameFn(name) {
+        var closeIFrame = function() {
+            $("#" + name + "-html-builder").removeClass("fullscreen");
+            $("#" + name + "-html-builder").addClass("hidden");
+        };
+
+        return closeIFrame
+    }
+
+    var elements = {"elements": {{ final_attrs.elements|safe }}};
+
+    window._page_builders[name] = {
+        field_value: "{{ value }}",
+        url_upload: "{% url 'upload' %}",
+        url_save: "{% url 'save' %}",
+        url_load: "{% url 'load' %}",
+        url_preview: "{% url 'preview' %}",
+        url_export: "{% url 'export' %}",
+        csrftoken: getCookie('csrftoken'),
+        closeIFrame: getCloseIFrameFn(name),
+        elements: elements
+    }
+
+    window._page_builders['__{{ final_attrs.name|upper }}__'] = window._page_builders[name];
+
+    $(function(){
+
+        if (name.search(/__prefix__/) != -1){
+
+            // add to inline
+            $(document).on('formset:added', function(event, $row, formsetName) {
+                var $el = $('.page-builder-input', $row).get(0); // page-builder-input
+                if ( $el ) {
+                    var new_name = $($el).attr('name'),
+                        key = $($el).attr('data-safe-key'),
+                        field_value = guid();
+                    window._page_builders[new_name] = $.extend({}, window._page_builders[key]);
+                    window._page_builders[new_name].field_value = field_value;
+                    window._page_builders[new_name].closeIFrame = getCloseIFrameFn(new_name);
+                    $($el).val(field_value);
+                    window._init_page_builder_fn(new_name);
+                }
+            });
+
+            // add to django-fluent-contents
+            var cp_plugins = window.cp_plugins || {};
+            if ( !cp_plugins._init_page_builder_monkey_patch ) {
+                var origin_add_formset_item = cp_plugins.add_formset_item;
+                cp_plugins.add_formset_item = function( placeholder_slot, model_name, options ) {
+                    options = options || {};
+                    var origin_on_post_add = options.on_post_add;
+                    options.on_post_add = function ($fs_item) {
+                        var $el = $('.page-builder-input', $fs_item).get(0); // page-builder-input
+                        if ( $el ) {
+                            var new_name = $($el).attr('name'),
+                                key = $($el).attr('data-safe-key'),
+                                field_value = guid();
+                            window._page_builders[new_name] = $.extend({}, window._page_builders[key]);
+                            window._page_builders[new_name].field_value = field_value;
+                            window._page_builders[new_name].closeIFrame = getCloseIFrameFn(new_name);
+                            $($el).val(field_value);
+                            window._init_page_builder_fn(new_name);
+                        }
+                        if (origin_on_post_add) {
+                            origin_on_post_add($fs_item)
+                        }
+                    };
+                    origin_add_formset_item(placeholder_slot, model_name, options)
+                };
+                cp_plugins._init_page_builder_monkey_patch = true
+            }
+
+        } else {
+            window._init_page_builder_fn(name);
+        }
+
+    });
+})(django.jQuery);
+</script>
+
+{% csrf_token %}
+<input type="text" class="page-builder-input {{ final_attrs.name }}-pb-input" name="{{ final_attrs.name }}" data-safe-key="__{{ final_attrs.name|upper }}__" value="{{ value }}"/>

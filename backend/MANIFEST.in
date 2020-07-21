@@ -1,0 +1,6 @@
+include LICENSE.txt
+include README.md
+include setup.py
+recursive-include backend/page_builder/templates *.*
+recursive-include backend/page_builder/static *.*
+recursive-include backend/page_builder/locale *.*
