@@ -53,7 +53,7 @@ setup(
     version='0.1.0',
     description="Django Page Builder",
     long_description=convert('README.md', 'rst'),
-    url='https://bitbucket.org/info-labs/django-page-builder.git',
+    url='https://github.com/infolabs/django-page-builder.git',
     license='GPL v3 License',
     platforms=['OS Independent'],
     classifiers=CLASSIFIERS,
